@@ -1,12 +1,15 @@
+import json
 import os
 import time
 
 # get filepath
 print("======================================================")
 print("Automatic dds remover/updater")
-print("V0.1.2")
+print("V0.2.1")
 print("Made by: Jaspervdv")
 print("======================================================")
+
+foundFile = True
 
 while(True):
     path = input("path:")
@@ -15,55 +18,57 @@ while(True):
     except OSError:
         print("No decal json found")
     else:
+        words = path.split('\\')
+        setupPath = ""
+
+        filterStrings = words[: words.index("Assetto Corsa Competizione") + 1]
+
+        for filterString in filterStrings:
+            setupPath += filterString + "\\"
+
+        setupPath += "Config\\menuSettings.json"
+
+        try:
+            open(setupPath)
+        except OSError:
+            print("No menuSettings found")
+            continue
+
         break
 
+print()
+print("Setup File " + setupPath)
 print("Monitoring " + path)
+print()
 
-# find file age
-decalTime = 0
-sponsorTime = 0
-
-try:
-    open(path + "\decals.png")
-except OSError:
-    print("No decals.png found")
-else:
-    print("decals.png found")
-    decalTime = os.stat(path + "\decals.png").st_mtime
+# uncheck texDDS in setting json
+with open(setupPath, 'r+') as f:
+    data = json.load(f)
+    data['texDDS'] = 0
+    f.seek(0)  # <--- should reset file position to the beginning.
+    json.dump(data, f, indent=4)
 
 try:
-    open(path + "\sponsors.png")
+    os.remove(path + "\decals_0.dds")
+    os.remove(path + "\decals_1.dds")
+    os.remove(path + "\ponsors_0.dds")
+    os.remove(path + "\ponsors_1.dds")
+
 except OSError:
-    print("No sponsors.png found")
-else:
-    print("sponsors.png found")
-    sponsorTime = os.stat(path + "\sponsors.png").st_mtime
+    pass
 
-# monitor file
-while True:
-    if decalTime != 0:
-        newDecalTime = os.stat(path + "\decals.png").st_mtime
+print("")
+print("ACC can be started")
+input("Press any key when finished:")
 
-        if decalTime != newDecalTime:
-            decalTime = newDecalTime
+# check texDDS in setting json
+with open(setupPath, 'r+') as f:
+    data = json.load(f)
+    data['texDDS'] = 1
+    f.seek(0)  # <--- should reset file position to the beginning.
+    json.dump(data, f, indent=4)
 
-            try:
-                os.remove(path + "\decals_0.dds")
-                os.remove(path + "\decals_1.dds")
-            except:
-                continue
-
-    if sponsorTime != 0:
-        newSponsorTime = os.stat(path + "\sponsors.png").st_mtime
-
-        if sponsorTime != newSponsorTime:
-            sponsorTime = newSponsorTime
-
-            try:
-                os.remove(path + "\ponsors_0.dds")
-                os.remove(path + "\ponsors_1.dds")
-            except:
-                continue
-
-    # prevent overupdating
-    time.sleep(1)
+print("Process ended")
+print("Window can be closed")
+print("Please restart ACC")
+time.sleep(20)
