@@ -4,7 +4,7 @@ import time
 # get filepath
 print("======================================================")
 print("Automatic dds remover/updater")
-print("V0.1.1")
+print("V0.1.2")
 print("Made by: Jaspervdv")
 print("======================================================")
 
@@ -50,6 +50,16 @@ while True:
             try:
                 os.remove(path + "\decals_0.dds")
                 os.remove(path + "\decals_1.dds")
+            except:
+                continue
+
+    if sponsorTime != 0:
+        newSponsorTime = os.stat(path + "\sponsors.png").st_mtime
+
+        if sponsorTime != newSponsorTime:
+            sponsorTime = newSponsorTime
+
+            try:
                 os.remove(path + "\ponsors_0.dds")
                 os.remove(path + "\ponsors_1.dds")
             except:
