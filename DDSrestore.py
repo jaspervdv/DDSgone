@@ -1,7 +1,4 @@
 import json
-import os
-import time
-
 while True:
 
     setupPath = input('ACC root folder path:')

@@ -1,15 +1,15 @@
 import json
 import os
-import time
 import win32console, win32gui, win32con
 
-# get filepath
 print("======================================================")
 print("Automatic dds remover/updater")
 print("V0.2.2")
 print("Made by: Jaspervdv")
 print("======================================================")
+print()
 
+# get filepath
 path = ""
 setupPath = ""
 
