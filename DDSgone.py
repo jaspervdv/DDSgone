@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import win32console, win32gui, win32con
 
 # get filepath
 print("======================================================")
@@ -41,6 +42,12 @@ print("Setup File " + setupPath)
 print("Monitoring " + path)
 print()
 
+hwnd = win32console.GetConsoleWindow()
+if hwnd:
+   hMenu = win32gui.GetSystemMenu(hwnd, 0)
+   if hMenu:
+       win32gui.DeleteMenu(hMenu, win32con.SC_CLOSE, win32con.MF_BYCOMMAND)
+
 # uncheck texDDS in setting json
 with open(setupPath, 'r+') as f:
     data = json.load(f)
@@ -71,4 +78,7 @@ with open(setupPath, 'r+') as f:
 print("Process ended")
 print("Window can be closed")
 print("Please restart ACC")
-time.sleep(20)
+
+print()
+print("press any key to close window")
+input()
