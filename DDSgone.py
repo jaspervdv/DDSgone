@@ -171,7 +171,7 @@ except OSError:
 
 print("")
 print("ACC can be started")
-input("Press any key when finished with livery creation:")
+input("Press enter when finished with livery creation:")
 
 # check texDDS in setting json
 with open(setupPath, 'r+') as f:
@@ -185,5 +185,5 @@ print("Window can be closed")
 print("Please restart ACC")
 
 print()
-print("press any key to close window")
+print("press enter key to close window")
 input()
