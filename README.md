@@ -4,8 +4,21 @@ DDSgone is a simple program that is made to support the livery creation process 
 
 DDSgone is supported by DDSrestore and LFilter. DDSrestore will restore settings if DDSgone has encountered issues and LFilter will remove redundant livery directories in the ACC liveries directory.
 
-.exe is occasionally seen as a trojan, sorry about that, it is not
+.exe is occasionally seen as a trojan, sorry about that, it is not. However, if you want to be save you can run the .py files if you have python installed on your system.
 
+# How to acquire the .exe files
+
+If you have any familiarity with GitHub just move on to the next section. This section is for people with no programming background, for which this tool is mostly created.
+
+1. Go to the directory structure located above and open the "dist" directory.
+
+2. open the desired .exe
+
+3. press the "download" button.
+
+4. If your computer freaks out, do not worry, this is normal behavior when you download a random .exe file. In chrome: Press the arrow icon and click "keep".
+
+5. When you start the .exe, again the computer can warn you, again this is normal behavior. Click "more info" followed by "run anyway" 
 # How to use DDSgone
 
 DDSgone.exe (and .py) will remove the present dds files from a livery folder that is worked upon and temporarily suppress ACC from creating and using dds files. 
