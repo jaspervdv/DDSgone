@@ -2,9 +2,11 @@
 
 DDSgone is a simple program that is made to support the livery creation process in Assetto Corsa Competizione. DDSgone will remove the dds files of a selected livery and force ACC to ignore DDS files temporarily. This allows for direct livery updating in the garage, so no dds files have to be repeatedly removed and no config files have to manually edited. The program also has a simple memory function, allowing for quick access without the need to type or paste in file paths for every use. 
 
+DDSgone is supported by DDSrestore and LFilter. DDSrestore will restore settings if DDSgone has encountered issues and LFilter will remove redundant livery directories in the ACC liveries directory.
+
 .exe is occasionally seen as a trojan, sorry about that, it is not
 
-#How to use DDSgone
+# How to use DDSgone
 
 DDSgone.exe (and .py) will remove the present dds files from a livery folder that is worked upon and temporarily suppress ACC from creating and using dds files. 
 
