@@ -12,9 +12,9 @@ If you have any familiarity with GitHub just move on to the next section. This s
 
 1. Go to the directory structure located above and open the "dist" directory.
 
-2. open the desired .exe
+2. Open the desired .exe
 
-3. press the "download" button.
+3. Press the "download" button.
 
 4. If your computer freaks out, do not worry, this is normal behavior when you download a random .exe file. In chrome: Press the arrow icon and click "keep".
 
@@ -23,7 +23,7 @@ If you have any familiarity with GitHub just move on to the next section. This s
 
 DDSgone.exe (and .py) will remove the present dds files from a livery folder that is worked upon and temporarily suppress ACC from creating and using dds files. 
 
-1. Run either the .exe or .py DDSgone file and set the path to the folder that has the livery data (example path: C:\Users\jaspe\Documents\Assetto Corsa Competizione\Customs\Liveries\Porsche_991_GT3_SCB_Emilia_415). 
+1. Run either the .exe or .py DDSgone file (before starting ACC) and set the path to the folder that has the livery data (example path: C:\Users\jaspe\Documents\Assetto Corsa Competizione\Customs\Liveries\Porsche_991_GT3_SCB_Emilia_415). 
 
 ![Start window](./Images/1_startwindow.JPG?raw=true "Start Window")
 
@@ -77,6 +77,6 @@ LFilter.exe (and .py) removes all the unused liveries directory from the ACC dir
 
 ![Filter Security](./Images/9_Lfilterlocation.JPG?raw=true "Filter Security")
 
-3. If succesful LFilter will notify you how many directories have been removed and that the window can be closed.
+3. If successfull LFilter will notify you how many directories have been removed and that the window can be closed.
 
 ![Filter Safe to Close](./Images/10_Lfiltersuccess.JPG?raw=true "Filter Safe to Close")
