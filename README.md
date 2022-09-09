@@ -6,6 +6,8 @@ DDSgone is supported by DDSrestore and LFilter. DDSrestore will restore settings
 
 .exe is occasionally seen as a trojan, sorry about that, it is not. However, if you want to be save you can run the .py files if you have python installed on your system.
 
+The readme is written for V0.2.2.
+
 # How to acquire the .exe files
 
 If you have any familiarity with GitHub just move on to the next section. This section is for people with no programming background, for which this tool is mostly created.

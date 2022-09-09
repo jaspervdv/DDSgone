@@ -1,10 +1,14 @@
 import json
 import os
+
+import easygui
 import win32console, win32gui, win32con
+
+
 
 print("======================================================")
 print("Automatic dds remover/updater")
-print("V0.2.2")
+print("V0.2.3")
 print("Made by: Jaspervdv")
 print("======================================================")
 print()
@@ -28,6 +32,7 @@ except OSError:
         json.dump(dic, f, indent=4)
 
 useNewPath = True
+windowPath = ""
 
 #display options
 with open(memoryPath, 'r') as f:
@@ -39,6 +44,8 @@ with open(memoryPath, 'r') as f:
     else:
         print("Recent files:")
         count = 1
+
+        windowPath = dictionary[0]
         for i in reversed(dictionary):
             print(str(count) + " : " + i)
             count += 1
@@ -58,7 +65,11 @@ with open(memoryPath, 'r') as f:
 # get filepath if new file is needed
 if useNewPath:
     while True:
-        path = input("path:")
+        path = easygui.diropenbox(msg="Select livery folder", default=os.path.dirname(windowPath))
+
+        if path is None:
+            input("No Path detected, press enter to retry")
+            continue
         try:
             open(path + "\\decals.json")
         except OSError:
