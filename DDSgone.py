@@ -1,13 +1,22 @@
 import json
 import os
-
 import tkinter as tk
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
-from calendar import month_name
 
-import easygui
-import win32console, win32gui, win32con
+
+def update_dict(memory_path):
+    try:
+        with open(memory_path, 'r+') as f:
+            data = json.load(f)
+            return data['tempFiles']
+    except OSError:
+        with open(memory_path, 'w') as f:
+            dic = {
+                "tempFiles": []
+            }
+            json.dump(dic, f, indent=4)
+            return []
 
 
 def close_program():
@@ -23,6 +32,7 @@ def browse_button():
     folder_path = filedialog.askdirectory()
     path_cb.set(folder_path)
 
+
 def end_button():
     # check texDDS in setting json
     with open(setupPath, 'r+') as f:
@@ -31,23 +41,26 @@ def end_button():
         f.seek(0)  # <--- should reset file position to the beginning.
         json.dump(data, f, indent=4)
 
-    # TODO update memory
+    # update memory
+    path_cb['values'] = update_dict(memoryPath)
 
     root.protocol("WM_DELETE_WINDOW", close_program)
     text_window.insert(tk.END, "\nProcess ended\n")
     text_window.insert(tk.END, "Window can be closed\n")
     text_window.insert(tk.END, "Please restart ACC\n")
 
+    # restore buttons to normal state
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
     end_button.place_forget()
     open_button.place(x=817, y=370)
 
+
 def open_button():
     if len(path_cb.get()) == 0:
         return
 
-    #reset text window
+    # reset text window
     text_window.delete(1.0, tk.END)
 
     path = path_cb.get()
@@ -73,10 +86,11 @@ def open_button():
             if path_cb.current() == -1:
                 words = path.split('/')
                 global setupPath
+                setupPath = ""
 
-                filterStrings = words[: words.index("Assetto Corsa Competizione") + 1]
+                filter_strings = words[: words.index("Assetto Corsa Competizione") + 1]
 
-                for filterString in filterStrings:
+                for filterString in filter_strings:
                     setupPath += filterString + "\\"
 
                 setupPath += "Config\\menuSettings.json"
@@ -114,8 +128,6 @@ def open_button():
                     with open(memoryPath, 'w') as f:
                         json.dump(dic, f, indent=4)
             else:
-                dictionary = []
-
                 with open(memoryPath, 'r+') as f:
                     data = json.load(f)
                     dictionary = data['tempFiles']
@@ -124,9 +136,9 @@ def open_button():
                 words = path.split('/')
                 setupPath = ""
 
-                filterStrings = words[: words.index("Assetto Corsa Competizione") + 1]
+                filter_strings = words[: words.index("Assetto Corsa Competizione") + 1]
 
-                for filterString in filterStrings:
+                for filterString in filter_strings:
                     setupPath += filterString + "/"
 
                 setupPath += "Config/menuSettings.json"
@@ -141,7 +153,7 @@ def open_button():
                 with open(memoryPath, 'w') as f:
                     json.dump(dic, f, indent=4)
 
-        #call edit function
+        # call edit function
         browse_button['state'] = tk.DISABLED
         path_cb['state'] = tk.DISABLED
         open_button.place_forget()
@@ -174,25 +186,9 @@ version = "V0.3.1"
 # get filepath
 folder_path = ""
 setupPath = ""
-dictionary = []
 
 # make a memory file if not yet present
-memoryPath = os.getcwd()
-memoryPath += "\\mem.json"
-
-try:
-    with open(memoryPath, 'r+') as f:
-        data = json.load(f)
-        dictionary = data['tempFiles']
-        pass
-except OSError:
-    with open(memoryPath, 'w') as f:
-        dic = {
-            "tempFiles": []
-        }
-        json.dump(dic, f, indent=4)
-
-useNewPath = True
+memoryPath = os.getcwd() + "\\mem.json"
 windowPath = "*"
 
 #make root window
@@ -206,7 +202,7 @@ root.title('DDSgone ' + version)
 # create and populate recent file combobox
 selected_path = tk.StringVar()
 path_cb = ttk.Combobox(root, textvariable=selected_path, width=144)
-path_cb['values'] = dictionary
+path_cb['values'] = update_dict(memoryPath)
 
 # create browse button
 browse_button = ttk.Button(
