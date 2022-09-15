@@ -1,6 +1,7 @@
 import json
 import os
 import tkinter as tk
+from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
 
@@ -52,8 +53,8 @@ def end_button():
     # restore buttons to normal state
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
-    end_button.place_forget()
-    open_button.place(x=817, y=370)
+    end_button.pack_forget()
+    open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
 
 def open_button():
@@ -156,8 +157,8 @@ def open_button():
         # call edit function
         browse_button['state'] = tk.DISABLED
         path_cb['state'] = tk.DISABLED
-        open_button.place_forget()
-        end_button.place(x=817, y=370)
+        open_button.pack_forget()
+        end_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
         root.protocol("WM_DELETE_WINDOW", disable_event)
 
         text_window.insert(tk.END, "Setup File " + setupPath + "\n")
@@ -181,7 +182,7 @@ def open_button():
             pass
 
 
-version = "V0.3.1"
+version = "V0.3.2"
 
 # get filepath
 folder_path = ""
@@ -196,7 +197,7 @@ root = tk.Tk()
 
 # config the root window
 root.geometry('900x400')
-root.resizable(False, False)
+root.resizable(True, True)
 root.title('DDSgone ' + version)
 
 # create and populate recent file combobox
@@ -226,12 +227,12 @@ end_button = ttk.Button(
 )
 
 # create text output
-text_window = tk.Text(width=110, height=20)
+text_window = tk.Text(root, width=16, height=5)
 
 # place the widget
-text_window.place(x=5, y=5)
-path_cb.place(x=5, y=343)
-browse_button.place(x=735, y=370)
-open_button.place(x=817, y=370)
+text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 5))
+path_cb.pack(side=TOP, anchor=NW, fill=X, padx=5)
+browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=5)
+open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
 root.mainloop()
