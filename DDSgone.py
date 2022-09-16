@@ -5,7 +5,6 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
 
-
 def update_dict(memory_path):
     try:
         with open(memory_path, 'r+') as f:
@@ -200,6 +199,19 @@ root.geometry('900x400')
 root.resizable(True, True)
 root.title('DDSgone ' + version)
 
+try:
+    open('./images/logoSmall.ico')
+except OSError:
+    try:
+        open('../images/logoSmall.ico')
+    except OSError:
+        pass
+    else:
+        root.iconbitmap(r'../images/logoSmall.ico')
+else:
+    root.iconbitmap(r'./images/logoSmall.ico')
+
+
 # create and populate recent file combobox
 selected_path = tk.StringVar()
 path_cb = ttk.Combobox(root, textvariable=selected_path, width=144)
@@ -234,5 +246,13 @@ text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 5
 path_cb.pack(side=TOP, anchor=NW, fill=X, padx=5)
 browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=5)
 open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
+
+#close splash when using .exe
+try:
+    import pyi_splash
+    pyi_splash.update_text('UI Loaded ...')
+    pyi_splash.close()
+except:
+    pass
 
 root.mainloop()
