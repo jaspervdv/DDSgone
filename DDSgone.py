@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
 
+
 def update_dict(memory_path):
     try:
         with open(memory_path, 'r+') as f:
@@ -191,7 +192,7 @@ setupPath = ""
 memoryPath = os.getcwd() + "\\mem.json"
 windowPath = "*"
 
-#make root window
+# make root window
 root = tk.Tk()
 
 # config the root window
@@ -254,5 +255,7 @@ try:
     pyi_splash.close()
 except:
     pass
+
+text_window.insert(tk.END, "Select livery folder of the livery that is going to be edited\n")
 
 root.mainloop()
