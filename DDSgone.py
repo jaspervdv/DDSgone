@@ -44,15 +44,30 @@ def disable_event():
 def browse_button():
     global folder_path
     folder_path = filedialog.askdirectory()
-    path_cb.set(folder_path)
+    if len(folder_path):
+        path_cb.set(folder_path)
 
 
 def f_browse_button():
     global filter_folder_path
     filter_folder_path = filedialog.askdirectory()
-    filter_entry_box.delete(0, END)
-    filter_entry_box.insert(0, filter_folder_path)
-    filter_window.lift()
+
+    if filter_folder_path:
+        filter_entry_box.delete(0, END)
+        filter_entry_box.insert(0, filter_folder_path)
+
+    filter_window.focus_force()
+
+
+def r_browse_button():
+    global repair_folder_path
+    repair_folder_path = filedialog.askdirectory()
+
+    if repair_folder_path:
+        repair_entry_box.delete(0, END)
+        repair_entry_box.insert(0, repair_folder_path)
+
+    repair_window.focus_force()
 
 
 def f_filter_button():
@@ -89,8 +104,6 @@ def f_filter_button():
             filter_text_window.insert(tk.END, "\n\nNo redundant directories have been found")
 
         filter_window.lift()
-        # TODO make end button
-
 
     else:
         showinfo(
@@ -98,6 +111,30 @@ def f_filter_button():
             message="No valid root directory found"
         )
         filter_window.lift()
+
+
+def r_repair_button():
+    r_setup_path = repair_entry_box.get() + "/Config/menuSettings.json"
+
+    try:
+        open(r_setup_path)
+    except OSError:
+        showinfo(
+            title='Info',
+            message="No settings file found"
+        )
+        repair_window.focus_force()
+        return
+
+    repair_text_window.insert(tk.END, "\n\nRestoring settings file: " + r_setup_path)
+
+    with open(r_setup_path, 'r+') as f:
+        data = json.load(f)
+        data['texDDS'] = 1
+        f.seek(0)  # <--- should reset file position to the beginning.
+        json.dump(data, f, indent=4)
+
+    repair_text_window.insert(tk.END, "\n\nSuccessfully restored settings ")
 
 
 def end_button():
@@ -268,7 +305,7 @@ def filter_button():
 
     global filter_window
     filter_window = Toplevel(root)
-    filter_window.title('DDSfilter')
+    filter_window.title('Lfilter')
     filter_window.geometry('600x200')
 
     filter_window.protocol("WM_DELETE_WINDOW", filter_window.quit)
@@ -281,19 +318,19 @@ def filter_button():
 
     filter_browse_button = ttk.Button(
         filter_window,
-        text='browse',
+        text='Browse',
         command=f_browse_button
     )
 
     filter_filter_button = ttk.Button(
         filter_window,
-        text='filter',
+        text='Filter',
         command=f_filter_button
     )
 
     filter_close_button = ttk.Button(
         filter_window,
-        text='close',
+        text='Close',
         command=filter_window.quit
     )
 
@@ -309,8 +346,9 @@ def filter_button():
     filter_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
     filter_filter_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
 
-    filter_text_window.insert(tk.END, "DDSfilter will remove all the unused livery folders\n")
+    filter_text_window.insert(tk.END, "Lfilter will remove all the unused livery folders\n")
     filter_text_window.insert(tk.END, "\nBrowse to select ACC root folder")
+    filter_window.focus_force()
 
     filter_window.mainloop()
     filter_window.destroy()
@@ -325,7 +363,71 @@ def filter_button():
 
 
 def repair_button():
-    pass
+    # disable all buttons on the root
+    browse_button['state'] = tk.DISABLED
+    path_cb['state'] = tk.DISABLED
+    filter_button['state'] = tk.DISABLED
+    restore_button['state'] = tk.DISABLED
+    open_button['state'] = tk.DISABLED
+    text_window['state'] = tk.DISABLED
+
+    global repair_window
+    repair_window = Toplevel(root)
+    repair_window.title('DDSrestore')
+    repair_window.geometry('600x200')
+
+    repair_window.protocol("WM_DELETE_WINDOW", repair_window.quit)
+
+    global repair_entry_box
+    repair_entry_box = ttk.Entry(repair_window)
+    filter_path = get_rootdir()
+
+    repair_entry_box.insert(0, filter_path)
+
+    repair_browse_button = ttk.Button(
+        repair_window,
+        text='Browse',
+        command=r_browse_button
+    )
+
+    repair_filter_button = ttk.Button(
+        repair_window,
+        text='Restore',
+        command=r_repair_button
+    )
+
+    repair_close_button = ttk.Button(
+        repair_window,
+        text='Close',
+        command=repair_window.quit
+    )
+
+    # create text output
+    global repair_text_window
+    repair_text_window = tk.Text(repair_window, width=16, height=5)
+
+    # place the widget
+    repair_text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 0))
+
+    repair_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
+    repair_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+    repair_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
+    repair_filter_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
+
+    repair_text_window.insert(tk.END, "DDSrestore will restore the original ACC settings\n")
+    repair_text_window.insert(tk.END, "\nBrowse to select ACC root folder")
+    repair_window.focus_force()
+
+    repair_window.mainloop()
+    repair_window.destroy()
+
+    # enable all buttons in the root
+    browse_button['state'] = tk.NORMAL
+    path_cb['state'] = tk.NORMAL
+    filter_button['state'] = tk.NORMAL
+    restore_button['state'] = tk.NORMAL
+    open_button['state'] = tk.NORMAL
+    text_window['state'] = tk.NORMAL
 
 
 version = "V0.3.2"
@@ -378,7 +480,7 @@ filter_button = ttk.Button(
 
 restore_button = ttk.Button(
     root,
-    text='Repair',
+    text='Restore',
     command=repair_button
 )
 
