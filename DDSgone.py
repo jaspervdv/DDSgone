@@ -1,9 +1,22 @@
 import json
 import os
+import shutil
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
+
+
+def get_rootdir():
+    # get predicted file location
+    with open(memoryPath, 'r+') as f:
+        data = json.load(f)
+        dictionary = data['tempFiles']
+
+    if len(dictionary) != 0:
+        return str(os.path.dirname(os.path.dirname(os.path.dirname(dictionary[0]))))
+    else:
+        return str("")
 
 
 def update_dict(memory_path):
@@ -34,6 +47,59 @@ def browse_button():
     path_cb.set(folder_path)
 
 
+def f_browse_button():
+    global filter_folder_path
+    filter_folder_path = filedialog.askdirectory()
+    filter_entry_box.delete(0, END)
+    filter_entry_box.insert(0, filter_folder_path)
+    filter_window.lift()
+
+
+def f_filter_button():
+    f_setup_path = filter_entry_box.get() + "/Customs/Liveries"
+
+    if os.path.isdir(f_setup_path):
+        del_count = 0
+
+        filter_text_window.insert(tk.END, "\n\nremoving redundant files from: " + f_setup_path)
+
+        for subdir, dirs, files in os.walk(f_setup_path):
+            found = False
+
+            if subdir == f_setup_path:
+                continue
+
+            for file in files:
+                ext = str(file[-4:])
+
+                if ext == ".png" or ext == ".jpg" or ext == ".dds":
+                    found = True
+                    break
+
+            if not found:
+                del_count += 1
+                for file in files:
+                    pass
+                    os.remove(os.path.join(subdir, file))
+                shutil.rmtree(subdir)
+
+        if del_count:
+            filter_text_window.insert(tk.END, "\n\nSuccesfully removed " + str(del_count) + " folders")
+        else:
+            filter_text_window.insert(tk.END, "\n\nNo redundant directories have been found")
+
+        filter_window.lift()
+        # TODO make end button
+
+
+    else:
+        showinfo(
+            title='Info',
+            message="No valid root directory found"
+        )
+        filter_window.lift()
+
+
 def end_button():
     # check texDDS in setting json
     with open(setupPath, 'r+') as f:
@@ -53,12 +119,18 @@ def end_button():
     # restore buttons to normal state
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
+    filter_button['state'] = tk.NORMAL
+    restore_button['state'] = tk.NORMAL
     end_button.pack_forget()
     open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
 
 def open_button():
     if len(path_cb.get()) == 0:
+        showinfo(
+            title='Info',
+            message='No filepath input given'
+        )
         return
 
     # reset text window
@@ -157,6 +229,9 @@ def open_button():
         # call edit function
         browse_button['state'] = tk.DISABLED
         path_cb['state'] = tk.DISABLED
+        filter_button['state'] = tk.DISABLED
+        restore_button['state'] = tk.DISABLED
+
         open_button.pack_forget()
         end_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
         root.protocol("WM_DELETE_WINDOW", disable_event)
@@ -180,6 +255,77 @@ def open_button():
 
         except OSError:
             pass
+
+
+def filter_button():
+    # disable all buttons on the root
+    browse_button['state'] = tk.DISABLED
+    path_cb['state'] = tk.DISABLED
+    filter_button['state'] = tk.DISABLED
+    restore_button['state'] = tk.DISABLED
+    open_button['state'] = tk.DISABLED
+    text_window['state'] = tk.DISABLED
+
+    global filter_window
+    filter_window = Toplevel(root)
+    filter_window.title('DDSfilter')
+    filter_window.geometry('600x200')
+
+    filter_window.protocol("WM_DELETE_WINDOW", filter_window.quit)
+
+    global filter_entry_box
+    filter_entry_box = ttk.Entry(filter_window)
+    filter_path = get_rootdir()
+
+    filter_entry_box.insert(0, filter_path)
+
+    filter_browse_button = ttk.Button(
+        filter_window,
+        text='browse',
+        command=f_browse_button
+    )
+
+    filter_filter_button = ttk.Button(
+        filter_window,
+        text='filter',
+        command=f_filter_button
+    )
+
+    filter_close_button = ttk.Button(
+        filter_window,
+        text='close',
+        command=filter_window.quit
+    )
+
+    # create text output
+    global filter_text_window
+    filter_text_window = tk.Text(filter_window, width=16, height=5)
+
+    # place the widget
+    filter_text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 0))
+
+    filter_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
+    filter_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+    filter_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
+    filter_filter_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
+
+    filter_text_window.insert(tk.END, "DDSfilter will remove all the unused livery folders\n")
+    filter_text_window.insert(tk.END, "\nBrowse to select ACC root folder")
+
+    filter_window.mainloop()
+    filter_window.destroy()
+
+    # enable all buttons in the root
+    browse_button['state'] = tk.NORMAL
+    path_cb['state'] = tk.NORMAL
+    filter_button['state'] = tk.NORMAL
+    restore_button['state'] = tk.NORMAL
+    open_button['state'] = tk.NORMAL
+    text_window['state'] = tk.NORMAL
+
+
+def repair_button():
+    pass
 
 
 version = "V0.3.2"
@@ -212,7 +358,6 @@ except OSError:
 else:
     root.iconbitmap(r'./images/logoSmall.ico')
 
-
 # create and populate recent file combobox
 selected_path = tk.StringVar()
 path_cb = ttk.Combobox(root, textvariable=selected_path, width=144)
@@ -223,6 +368,18 @@ browse_button = ttk.Button(
     root,
     text='Browse',
     command=browse_button
+)
+
+filter_button = ttk.Button(
+    root,
+    text='Filter',
+    command=filter_button
+)
+
+restore_button = ttk.Button(
+    root,
+    text='Repair',
+    command=repair_button
 )
 
 # create open button
@@ -245,12 +402,15 @@ text_window = tk.Text(root, width=16, height=5)
 # place the widget
 text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 5))
 path_cb.pack(side=TOP, anchor=NW, fill=X, padx=5)
+filter_button.pack(side=LEFT, padx=5, pady=5)
+restore_button.pack(side=LEFT)
 browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=5)
 open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
-#close splash when using .exe
+# close splash when using .exe
 try:
     import pyi_splash
+
     pyi_splash.update_text('UI Loaded ...')
     pyi_splash.close()
 except:
