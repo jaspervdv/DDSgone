@@ -7,6 +7,26 @@ from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
 
 
+def fade_root():
+    browse_button['state'] = tk.DISABLED
+    path_cb['state'] = tk.DISABLED
+    filter_button['state'] = tk.DISABLED
+    restore_button['state'] = tk.DISABLED
+    open_button['state'] = tk.DISABLED
+    text_window['state'] = tk.DISABLED
+    pack_button['state'] = tk.DISABLED
+
+
+def enable_root():
+    browse_button['state'] = tk.NORMAL
+    path_cb['state'] = tk.NORMAL
+    filter_button['state'] = tk.NORMAL
+    restore_button['state'] = tk.NORMAL
+    open_button['state'] = tk.NORMAL
+    text_window['state'] = tk.NORMAL
+    pack_button['state'] = tk.NORMAL
+
+
 def get_rootdir():
     # get predicted file location
     with open(memoryPath, 'r+') as f:
@@ -57,6 +77,16 @@ def f_browse_button():
         filter_entry_box.insert(0, filter_folder_path)
 
     filter_window.focus_force()
+
+
+def p_browse_button():
+    global package_folder_path
+    package_folder_path = filedialog.askdirectory()
+
+    if package_folder_path:
+        package_entry_box.set(package_folder_path)
+
+    package_window.focus_force()
 
 
 def r_browse_button():
@@ -294,14 +324,71 @@ def open_button():
             pass
 
 
+def package():
+    if len(package_entry_box.get()):
+
+        package_text_window.insert(tk.END, "\n\nCopying and packaging files")
+
+        livery_path = package_entry_box.get()
+        link_name = os.path.basename(livery_path)
+        cars_path = os.path.dirname(os.path.dirname(livery_path)) + "/Cars"
+
+        json_path = ""
+        file = ""
+
+        if os.path.isdir(cars_path):
+            found = False
+            for subdir, dirs, files in os.walk(cars_path):
+                for file in files:
+                    json_path = cars_path + '/' + file
+                    with open(json_path, 'r', encoding='utf-16-le') as f:
+                        customskinline = f.readlines()[29]
+                        templatename = customskinline.split(":")[1][2:-3]
+
+                        if link_name == templatename:
+                            found = True
+                            break
+                            # make temp folder
+                if found:
+                    break
+
+            if found:
+                temp_ex_folder = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')  +"\\"+ link_name
+                os.makedirs(temp_ex_folder)
+
+                # copy car json
+                shutil.copyfile(json_path, temp_ex_folder + "/" + file)
+
+                # copy livery files
+                os.makedirs(temp_ex_folder + "/" + link_name)
+                for subdir, dirs, files in os.walk(livery_path):
+                    for file in files:
+                        if os.path.splitext(file)[-1] != ".dds":
+                            shutil.copyfile(livery_path + "/" + file, temp_ex_folder + "/" + link_name + "/" + file)
+
+                shutil.make_archive(temp_ex_folder, 'zip', temp_ex_folder)
+                shutil.rmtree(temp_ex_folder)
+
+                package_text_window.insert(tk.END, "\n\nSuccessfully packaged files")
+                package_text_window.insert(tk.END, "\nZip is stored at: " + temp_ex_folder)
+
+                return
+        else:
+            showinfo(
+                title='Info',
+                message="No Cars directory"
+            )
+
+    else:
+        showinfo(
+            title='Info',
+            message="No filepath input given"
+        )
+
+
 def filter_button():
     # disable all buttons on the root
-    browse_button['state'] = tk.DISABLED
-    path_cb['state'] = tk.DISABLED
-    filter_button['state'] = tk.DISABLED
-    restore_button['state'] = tk.DISABLED
-    open_button['state'] = tk.DISABLED
-    text_window['state'] = tk.DISABLED
+    fade_root()
 
     global filter_window
     filter_window = Toplevel(root)
@@ -354,22 +441,12 @@ def filter_button():
     filter_window.destroy()
 
     # enable all buttons in the root
-    browse_button['state'] = tk.NORMAL
-    path_cb['state'] = tk.NORMAL
-    filter_button['state'] = tk.NORMAL
-    restore_button['state'] = tk.NORMAL
-    open_button['state'] = tk.NORMAL
-    text_window['state'] = tk.NORMAL
+    enable_root()
 
 
 def repair_button():
     # disable all buttons on the root
-    browse_button['state'] = tk.DISABLED
-    path_cb['state'] = tk.DISABLED
-    filter_button['state'] = tk.DISABLED
-    restore_button['state'] = tk.DISABLED
-    open_button['state'] = tk.DISABLED
-    text_window['state'] = tk.DISABLED
+    fade_root()
 
     global repair_window
     repair_window = Toplevel(root)
@@ -422,15 +499,67 @@ def repair_button():
     repair_window.destroy()
 
     # enable all buttons in the root
-    browse_button['state'] = tk.NORMAL
-    path_cb['state'] = tk.NORMAL
-    filter_button['state'] = tk.NORMAL
-    restore_button['state'] = tk.NORMAL
-    open_button['state'] = tk.NORMAL
-    text_window['state'] = tk.NORMAL
+    enable_root()
 
 
-version = "V0.3.2"
+def package_button():
+    # disable all buttons on the root
+    fade_root()
+
+    global package_window
+    package_window = Toplevel(root)
+    package_window.title('Lpackage')
+    package_window.geometry('600x200')
+
+    package_window.protocol("WM_DELETE_WINDOW", package_window.quit)
+
+    global package_entry_box
+    package_entry_box = ttk.Combobox(package_window, textvariable=selected_path, width=144)
+
+    package_entry_box['values'] = update_dict(memoryPath)
+
+    package_browse_button = ttk.Button(
+        package_window,
+        text='Browse',
+        command=p_browse_button
+    )
+
+    package_button = ttk.Button(
+        package_window,
+        text='Package',
+        command=package
+    )
+
+    package_close_button = ttk.Button(
+        package_window,
+        text='Close',
+        command=package_window.quit
+    )
+
+    # create text output
+    global package_text_window
+    package_text_window = tk.Text(package_window, width=16, height=5)
+
+    # place the widget
+    package_text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 0))
+
+    package_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
+    package_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+    package_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
+    package_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
+
+    package_text_window.insert(tk.END, "Lpackage will collect and package a selected livery\n")
+    package_text_window.insert(tk.END, "\nBrowse to select livery folder")
+    package_window.focus_force()
+
+    package_window.mainloop()
+    package_window.destroy()
+
+    # enable all buttons in the root
+    enable_root()
+
+
+version = "V0.3.3"
 
 # get filepath
 folder_path = ""
@@ -484,6 +613,12 @@ restore_button = ttk.Button(
     command=repair_button
 )
 
+pack_button = ttk.Button(
+    root,
+    text='Package',
+    command=package_button
+)
+
 # create open button
 open_button = ttk.Button(
     root,
@@ -506,6 +641,7 @@ text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 5
 path_cb.pack(side=TOP, anchor=NW, fill=X, padx=5)
 filter_button.pack(side=LEFT, padx=5, pady=5)
 restore_button.pack(side=LEFT)
+pack_button.pack(side=LEFT, padx=5)
 browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=5)
 open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
