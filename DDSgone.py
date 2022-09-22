@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
+from tkinterdnd2 import *
 import webbrowser
 
 
@@ -34,10 +35,10 @@ def get_rootdir():
     # get predicted file location
     with open(memoryPath, 'r+') as f:
         data = json.load(f)
-        dictionary = data['tempFiles']
+        rootdir = data['rootDir']
 
-    if len(dictionary) != 0:
-        return str(os.path.dirname(os.path.dirname(os.path.dirname(dictionary[0]))))
+    if len(rootdir) != 0:
+        return rootdir
     else:
         return str("")
 
@@ -65,7 +66,6 @@ def close_program():
 
 def disable_event():
     pass
-
 
 def browse_button():
     global folder_path
@@ -104,6 +104,17 @@ def r_browse_button():
         repair_entry_box.insert(0, repair_folder_path)
 
     repair_window.focus_force()
+
+
+def u_browse_button():
+    global unpack_folder_path
+    unpack_folder_path = filedialog.askdirectory(initialdir=path_cb.get())
+
+    if unpack_folder_path:
+        unpackage_source_entry_box.delete(0, END)
+        unpackage_source_entry_box.insert(0, repair_folder_path)
+
+    unpackage_window.focus_force()
 
 
 def f_filter_button():
@@ -269,6 +280,9 @@ def open_button():
 
                         dictionary.insert(0, path)
 
+                    if data['rootDir'] == "":
+                        data['rootDir'] = os.path.dirname(os.path.dirname(os.path.dirname(dictionary[0])))
+
                     data['tempFiles'] = dictionary
 
                     with open(memoryPath, 'w') as f:
@@ -419,9 +433,140 @@ def package(to_zip, to_structure):
         package_window.focus_force()
 
 
+def drag_and_drop(event):
+    source_path = event.data[1:-1]
+
+    if not os.path.isdir(source_path):
+        unpackage_text_window.insert(tk.END, "\nInvalid data")
+        return
+
+    valid = False
+    main_json_c = 0
+    sub_json_c = 0
+    folder_c = 0
+    json_path = ""
+    extra_path = ""
+
+    if not os.path.isdir(source_path + "\\Customs"):
+        for file in os.listdir(source_path):
+            if file[-4:] == "json":
+                main_json_c += 1
+                json_path = source_path + "\\" + file
+            if os.path.isdir(source_path + "\\" + file):
+                folder_c += 1
+                extra_path = source_path + "\\" + file
+
+        if folder_c == 1 and main_json_c == 1:
+            for file in os.listdir(extra_path):
+                if file[-4:] == "json":
+                    sub_json_c += 1
+
+            if 2 >= sub_json_c > 0:
+                valid = True
+    elif os.path.isdir(source_path + "\\Customs"):
+        if os.path.isdir(source_path + "\\Customs\\Cars"):
+            for file in os.listdir(source_path + "\\Customs\\Cars"):
+                if file[-4:] == "json":
+                    main_json_c += 1
+                    json_path = source_path + "\\Customs\\Cars\\" + file
+
+            for file in os.listdir(source_path + "\\Customs\\\Liveries"):
+                if os.path.isdir(source_path + "\\Customs\\\Liveries\\" + file):
+                    folder_c += 1
+                    extra_path = source_path + "\\Customs\\\Liveries\\" + file
+
+            if folder_c == 1 and main_json_c == 1:
+                for file in os.listdir(extra_path ):
+                    if file[-4:] == "json":
+                        sub_json_c += 1
+
+                if 2 >= sub_json_c > 0:
+                    valid = True
+
+    if valid:
+        # considered valid structure
+        target_livery_path = unpackage_source_entry_box.get() + "\\Customs\\Liveries\\" + os.path.split(extra_path)[-1]
+        target_file_path = unpackage_source_entry_box.get() + "\\Customs\\Cars\\" + os.path.split(json_path)[1]
+
+        if os.path.isdir(target_livery_path) or os.path.isfile:
+            answer = tk.messagebox.askyesno(
+                title='confirmation',
+                message='Identically named livery found, overwrite?')
+
+            if answer:
+                shutil.rmtree(target_livery_path)
+                os.remove(target_file_path)
+            else:
+                return
+
+        shutil.copytree(extra_path, target_livery_path)
+
+        shutil.copyfile(json_path, target_file_path)
+
+        unpackage_text_window.insert(tk.END, "\n\nSuccessfully unpackaged file")
+
+        unpackage_window.focus_force()
+
+
 def unpackage():
-    # TODO implement
-    pass
+    # disable all buttons on the root
+    fade_root()
+
+    global unpackage_window
+    unpackage_window = TkinterDnD.Tk()
+    unpackage_window.title('Lunpack')
+    unpackage_window.geometry('600x200')
+
+    unpackage_window.protocol("WM_DELETE_WINDOW", unpackage_window.quit)
+
+    global unpackage_source_entry_box
+    unpackage_source_entry_box = ttk.Entry(unpackage_window)
+    unpackage_path = get_rootdir()
+    unpackage_source_entry_box.insert(0, unpackage_path)
+
+    unpackage_browse_button = ttk.Button(
+        unpackage_window,
+        text='Browse',
+        command=u_browse_button
+    )
+
+    unpackage_unpack_button = ttk.Button(
+        unpackage_window,
+        text='Unpack',
+        command=not_implemented
+    )
+
+    unpackage_close_button = ttk.Button(
+        unpackage_window,
+        text='Close',
+        command=unpackage_window.quit
+    )
+
+    # create text output
+    global unpackage_text_window
+    unpackage_text_window = tk.Text(unpackage_window, width=16, height=5)
+
+    # place the widget
+    unpackage_text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 0))
+
+    unpackage_source_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
+    unpackage_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+    unpackage_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
+    unpackage_unpack_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
+
+    unpackage_text_window.insert(tk.END, "Lunpack will automatically store liveries\n")
+    unpackage_text_window.insert(tk.END, "\nSelect ACC root folder as target path")
+    unpackage_text_window.insert(tk.END, "\nDrag and drop livery .zip or directory to be stored correctly")
+    unpackage_window.focus_force()
+
+    unpackage_window.drop_target_register(DND_FILES)
+    unpackage_window.dnd_bind('<<Drop>>', drag_and_drop)
+
+    unpackage_window.mainloop()
+    unpackage_window.destroy()
+
+    # enable all buttons in the root
+    enable_root()
 
 
 def filter_button():
@@ -620,7 +765,7 @@ def package_button():
     enable_root()
 
 
-version = "V0.4.0"
+version = "V0.4.1"
 
 # get filepath
 folder_path = ""
@@ -677,7 +822,7 @@ tool_menu.add_command(
 
 tool_menu.add_command(
     label="Unpackage",
-    command=not_implemented
+    command=unpackage
 )
 
 tool_menu.add_separator()
