@@ -5,26 +5,29 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo
+import webbrowser
+
+
+def not_implemented():
+    showinfo(
+        title='Info',
+        message='Function is not yet implemented'
+    )
 
 
 def fade_root():
     browse_button['state'] = tk.DISABLED
     path_cb['state'] = tk.DISABLED
-    filter_button['state'] = tk.DISABLED
-    restore_button['state'] = tk.DISABLED
     open_button['state'] = tk.DISABLED
     text_window['state'] = tk.DISABLED
-    pack_button['state'] = tk.DISABLED
+    menubar.entryconfig(0, state=tk.DISABLED)
 
 
 def enable_root():
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
-    filter_button['state'] = tk.NORMAL
-    restore_button['state'] = tk.NORMAL
     open_button['state'] = tk.NORMAL
     text_window['state'] = tk.NORMAL
-    pack_button['state'] = tk.NORMAL
 
 
 def get_rootdir():
@@ -81,7 +84,7 @@ def f_browse_button():
 
 def p_browse_button():
     global package_folder_path
-    package_folder_path = filedialog.askdirectory()
+    package_folder_path = filedialog.askdirectory(initialdir=path_cb.get())
 
     if package_folder_path:
         package_entry_box.set(package_folder_path)
@@ -91,7 +94,7 @@ def p_browse_button():
 
 def r_browse_button():
     global repair_folder_path
-    repair_folder_path = filedialog.askdirectory()
+    repair_folder_path = filedialog.askdirectory(initialdir=path_cb.get()) # TODO
 
     if repair_folder_path:
         repair_entry_box.delete(0, END)
@@ -167,6 +170,10 @@ def r_repair_button():
     repair_text_window.insert(tk.END, "\n\nSuccessfully restored settings ")
 
 
+def help_call():
+    webbrowser.open('https://github.com/jaspervdv/DDSgone/blob/master/README.md')
+
+
 def end_button():
     # check texDDS in setting json
     with open(setupPath, 'r+') as f:
@@ -187,7 +194,6 @@ def end_button():
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
     filter_button['state'] = tk.NORMAL
-    restore_button['state'] = tk.NORMAL
     end_button.pack_forget()
     open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
@@ -297,7 +303,6 @@ def open_button():
         browse_button['state'] = tk.DISABLED
         path_cb['state'] = tk.DISABLED
         filter_button['state'] = tk.DISABLED
-        restore_button['state'] = tk.DISABLED
 
         open_button.pack_forget()
         end_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
@@ -324,7 +329,7 @@ def open_button():
             pass
 
 
-def package():
+def package(to_zip, to_structure):
     if len(package_entry_box.get()):
 
         package_text_window.insert(tk.END, "\n\nCopying and packaging files")
@@ -353,24 +358,51 @@ def package():
                     break
 
             if found:
-                temp_ex_folder = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')  +"\\"+ link_name
-                os.makedirs(temp_ex_folder)
+                desk_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+                if to_structure.get():
+                    temp_ex_folder = desk_path + "\\Assetto Corsa Competizione"
+                    cars_structure_path = desk_path + "\\Assetto Corsa Competizione\\Customs\\Cars"
+                    livery_structure_path = desk_path + "\\Assetto Corsa Competizione\\Customs\\Liveries\\" + link_name
 
-                # copy car json
-                shutil.copyfile(json_path, temp_ex_folder + "/" + file)
+                    os.makedirs(desk_path + "\\Assetto Corsa Competizione")
+                    os.makedirs(desk_path + "\\Assetto Corsa Competizione\\Customs")
+                    os.makedirs(cars_structure_path)
+                    os.makedirs(desk_path + "\\Assetto Corsa Competizione\\Customs\\Liveries")
+                    os.makedirs(livery_structure_path)
 
-                # copy livery files
-                os.makedirs(temp_ex_folder + "/" + link_name)
-                for subdir, dirs, files in os.walk(livery_path):
-                    for file in files:
-                        if os.path.splitext(file)[-1] != ".dds":
-                            shutil.copyfile(livery_path + "/" + file, temp_ex_folder + "/" + link_name + "/" + file)
+                    shutil.copyfile(json_path, cars_structure_path + "/" + file)
 
-                shutil.make_archive(temp_ex_folder, 'zip', temp_ex_folder)
-                shutil.rmtree(temp_ex_folder)
+                    for subdir, dirs, files in os.walk(livery_path):
+                        for file in files:
+                            if os.path.splitext(file)[-1] != ".dds":
+                                shutil.copyfile(livery_path + "/" + file, livery_structure_path +  "/" + file)
 
-                package_text_window.insert(tk.END, "\n\nSuccessfully packaged files")
-                package_text_window.insert(tk.END, "\nZip is stored at: " + temp_ex_folder)
+                    if to_zip.get():
+                        shutil.make_archive(temp_ex_folder, 'zip', temp_ex_folder)
+                        shutil.rmtree(temp_ex_folder)
+
+                    return
+
+                else:
+                    temp_ex_folder = desk_path + "\\" + link_name
+                    os.makedirs(temp_ex_folder)
+
+                    # copy car json
+                    shutil.copyfile(json_path, temp_ex_folder + "/" + file)
+
+                    # copy livery files
+                    os.makedirs(temp_ex_folder + "/" + link_name)
+                    for subdir, dirs, files in os.walk(livery_path):
+                        for file in files:
+                            if os.path.splitext(file)[-1] != ".dds":
+                                shutil.copyfile(livery_path + "/" + file, temp_ex_folder + "/" + link_name + "/" + file)
+
+                    if to_zip.get():
+                        shutil.make_archive(temp_ex_folder, 'zip', temp_ex_folder)
+                        shutil.rmtree(temp_ex_folder)
+
+                    package_text_window.insert(tk.END, "\n\nSuccessfully packaged files")
+                    package_text_window.insert(tk.END, "\nZip is stored at: " + temp_ex_folder)
 
                 return
         else:
@@ -379,11 +411,15 @@ def package():
                 message="No Cars directory"
             )
 
+            package_window.focus_force()
+
     else:
         showinfo(
             title='Info',
             message="No filepath input given"
         )
+
+        package_window.focus_force()
 
 
 def filter_button():
@@ -507,6 +543,13 @@ def package_button():
     fade_root()
 
     global package_window
+
+    wantszip = IntVar()
+    wantszip.set(1)
+
+    wantsstructure = IntVar()
+    wantsstructure.set(0)
+
     package_window = Toplevel(root)
     package_window.title('Lpackage')
     package_window.geometry('600x200')
@@ -527,13 +570,25 @@ def package_button():
     package_button = ttk.Button(
         package_window,
         text='Package',
-        command=package
+        command= lambda : package(wantszip, wantsstructure)
     )
 
     package_close_button = ttk.Button(
         package_window,
         text='Close',
         command=package_window.quit
+    )
+
+    zip_check = ttk.Checkbutton(
+        package_window,
+        text='.zip',
+        variable=wantszip
+    )
+
+    structure_check = ttk.Checkbutton(
+        package_window,
+        text='Structure',
+        variable=wantsstructure
     )
 
     # create text output
@@ -545,8 +600,12 @@ def package_button():
 
     package_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
     package_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+
     package_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
     package_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
+
+    zip_check.pack(side=LEFT, padx=5, pady=(0, 5))
+    structure_check.pack(side=LEFT, padx=5, pady=(0, 5))
 
     package_text_window.insert(tk.END, "Lpackage will collect and package a selected livery\n")
     package_text_window.insert(tk.END, "\nBrowse to select livery folder")
@@ -559,7 +618,7 @@ def package_button():
     enable_root()
 
 
-version = "V0.3.3"
+version = "V0.4.0"
 
 # get filepath
 folder_path = ""
@@ -594,29 +653,66 @@ selected_path = tk.StringVar()
 path_cb = ttk.Combobox(root, textvariable=selected_path, width=144)
 path_cb['values'] = update_dict(memoryPath)
 
+menubar = tk.Menu(root)
+tool_menu = tk.Menu(menubar, tearoff=0)
+
+tool_menu.add_command(
+    label="Restore",
+    command=repair_button
+)
+
+tool_menu.add_separator()
+
+tool_menu.add_command(
+    label="Filter",
+    command=filter_button
+)
+
+tool_menu.add_command(
+    label="Package",
+    command=package_button
+)
+
+tool_menu.add_command(
+    label="Unpackage",
+    command=not_implemented
+)
+
+tool_menu.add_separator()
+
+tool_menu.add_command(
+    label="Livery management",
+    command=not_implemented
+)
+
+help_menu = tk.Menu(menubar, tearoff=0)
+
+help_menu.add_command(
+    label="Help",
+    command=help_call
+)
+
+help_menu.add_command(
+    label="Settings",
+    command=not_implemented
+)
+
+help_menu.add_separator()
+
+help_menu.add_command(
+    label="exit",
+    command=root.destroy
+)
+
+
+menubar.add_cascade(label="Tools", menu=tool_menu)
+menubar.add_cascade(label="Help", menu=help_menu)
+
 # create browse button
 browse_button = ttk.Button(
     root,
     text='Browse',
     command=browse_button
-)
-
-filter_button = ttk.Button(
-    root,
-    text='Filter',
-    command=filter_button
-)
-
-restore_button = ttk.Button(
-    root,
-    text='Restore',
-    command=repair_button
-)
-
-pack_button = ttk.Button(
-    root,
-    text='Package',
-    command=package_button
 )
 
 # create open button
@@ -639,11 +735,10 @@ text_window = tk.Text(root, width=16, height=5)
 # place the widget
 text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 5))
 path_cb.pack(side=TOP, anchor=NW, fill=X, padx=5)
-filter_button.pack(side=LEFT, padx=5, pady=5)
-restore_button.pack(side=LEFT)
-pack_button.pack(side=LEFT, padx=5)
 browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=5)
 open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
+
+root.config(menu=menubar)
 
 # close splash when using .exe
 try:
