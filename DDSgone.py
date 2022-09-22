@@ -50,7 +50,10 @@ def update_dict(memory_path):
     except OSError:
         with open(memory_path, 'w') as f:
             dic = {
+                "rootDir": "",
+                "grouping": [],
                 "tempFiles": []
+
             }
             json.dump(dic, f, indent=4)
             return []
@@ -193,7 +196,6 @@ def end_button():
     # restore buttons to normal state
     browse_button['state'] = tk.NORMAL
     path_cb['state'] = tk.NORMAL
-    filter_button['state'] = tk.NORMAL
     end_button.pack_forget()
     open_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
 
@@ -267,12 +269,10 @@ def open_button():
 
                         dictionary.insert(0, path)
 
-                    dic = {
-                        "tempFiles": dictionary
-                    }
+                    data['tempFiles'] = dictionary
 
                     with open(memoryPath, 'w') as f:
-                        json.dump(dic, f, indent=4)
+                        json.dump(data, f, indent=4)
             else:
                 with open(memoryPath, 'r+') as f:
                     data = json.load(f)
@@ -292,17 +292,14 @@ def open_button():
                 del dictionary[path_cb.current()]
                 dictionary.insert(0, path)
 
-                dic = {
-                    "tempFiles": dictionary
-                }
+                data['tempFiles'] = dictionary
 
                 with open(memoryPath, 'w') as f:
-                    json.dump(dic, f, indent=4)
+                    json.dump(data, f, indent=4)
 
         # call edit function
         browse_button['state'] = tk.DISABLED
         path_cb['state'] = tk.DISABLED
-        filter_button['state'] = tk.DISABLED
 
         open_button.pack_forget()
         end_button.pack(side=RIGHT, anchor=NE, padx=0, pady=5)
@@ -420,6 +417,11 @@ def package(to_zip, to_structure):
         )
 
         package_window.focus_force()
+
+
+def unpackage():
+    # TODO implement
+    pass
 
 
 def filter_button():
@@ -703,7 +705,6 @@ help_menu.add_command(
     label="exit",
     command=root.destroy
 )
-
 
 menubar.add_cascade(label="Tools", menu=tool_menu)
 menubar.add_cascade(label="Help", menu=help_menu)
