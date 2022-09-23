@@ -43,6 +43,13 @@ def get_rootdir():
         return str("")
 
 
+def update_groups(memory_path):
+    with open(memory_path, 'r+') as f:
+        data = json.load(f)
+
+        if len(data["grouping"]) == 0:
+            return ["-no group-"]
+
 def update_dict(memory_path):
     try:
         with open(memory_path, 'r+') as f:
@@ -67,54 +74,18 @@ def close_program():
 def disable_event():
     pass
 
-def browse_button():
-    global folder_path
+
+def browse_(box, combo, window):
     folder_path = filedialog.askdirectory()
+
     if len(folder_path):
-        path_cb.set(folder_path)
+        if combo:
+            box.set(folder_path)
+        else:
+            box.delete(0, END)
+            box.insert(0, folder_path)
 
-
-def f_browse_button():
-    global filter_folder_path
-    filter_folder_path = filedialog.askdirectory()
-
-    if filter_folder_path:
-        filter_entry_box.delete(0, END)
-        filter_entry_box.insert(0, filter_folder_path)
-
-    filter_window.focus_force()
-
-
-def p_browse_button():
-    global package_folder_path
-    package_folder_path = filedialog.askdirectory(initialdir=path_cb.get())
-
-    if package_folder_path:
-        package_entry_box.set(package_folder_path)
-
-    package_window.focus_force()
-
-
-def r_browse_button():
-    global repair_folder_path
-    repair_folder_path = filedialog.askdirectory(initialdir=path_cb.get()) # TODO
-
-    if repair_folder_path:
-        repair_entry_box.delete(0, END)
-        repair_entry_box.insert(0, repair_folder_path)
-
-    repair_window.focus_force()
-
-
-def u_browse_button():
-    global unpack_folder_path
-    unpack_folder_path = filedialog.askdirectory(initialdir=path_cb.get())
-
-    if unpack_folder_path:
-        unpackage_source_entry_box.delete(0, END)
-        unpackage_source_entry_box.insert(0, repair_folder_path)
-
-    unpackage_window.focus_force()
+    window.focus_force()
 
 
 def f_filter_button():
@@ -484,6 +455,11 @@ def drag_and_drop(event):
                     valid = True
 
     if valid:
+        unpackage_unpack_button['state'] = tk.NORMAL
+
+        unpackage_text_window.insert(tk.END, "\n\nValid livery found, livery name: ")
+        unpackage_text_window.insert(tk.END, os.path.split(extra_path)[-1])
+
         # considered valid structure
         target_livery_path = unpackage_source_entry_box.get() + "\\Customs\\Liveries\\" + os.path.split(extra_path)[-1]
         target_file_path = unpackage_source_entry_box.get() + "\\Customs\\Cars\\" + os.path.split(json_path)[1]
@@ -515,7 +491,7 @@ def unpackage():
     global unpackage_window
     unpackage_window = TkinterDnD.Tk()
     unpackage_window.title('Lunpack')
-    unpackage_window.geometry('600x200')
+    unpackage_window.geometry('800x300')
 
     unpackage_window.protocol("WM_DELETE_WINDOW", unpackage_window.quit)
 
@@ -524,15 +500,27 @@ def unpackage():
     unpackage_path = get_rootdir()
     unpackage_source_entry_box.insert(0, unpackage_path)
 
+    selected_group = tk.StringVar()
+    group_option_list = ttk.Combobox(unpackage_window, textvariable=selected_group, width=40)
+    group_option_list['values'] = update_groups(memoryPath)
+    group_option_list.set("-no group-")
+
     unpackage_browse_button = ttk.Button(
         unpackage_window,
         text='Browse',
-        command=u_browse_button
+        command=lambda: browse_(unpackage_source_entry_box, False, unpackage_window)
     )
 
+    global unpackage_unpack_button
     unpackage_unpack_button = ttk.Button(
         unpackage_window,
         text='Unpack',
+        command=not_implemented
+    )
+
+    unpackage_ngroup_button = ttk.Button(
+        unpackage_window,
+        text='New group',
         command=not_implemented
     )
 
@@ -548,9 +536,10 @@ def unpackage():
 
     # place the widget
     unpackage_text_window.pack(side=TOP, anchor=NW, fill=BOTH, expand=True, padx=5, pady=(5, 0))
-
     unpackage_source_entry_box.pack(side=TOP, anchor=NW, fill=X, padx=5, pady=5)
-    unpackage_close_button.pack(side=LEFT, padx=5, pady=(0, 5))
+    unpackage_close_button.pack(side=LEFT, anchor=NE, padx=5, pady=(0, 5))
+    # group_option_list.pack(side=LEFT,pady=(0, 5)) TODO fix
+    # unpackage_ngroup_button.pack(side=LEFT, anchor=NE, padx=5, pady=(0, 5))
     unpackage_browse_button.pack(side=RIGHT, anchor=NE, padx=5, pady=(0, 5))
     unpackage_unpack_button.pack(side=RIGHT, anchor=NE, pady=(0, 5))
 
@@ -561,6 +550,8 @@ def unpackage():
 
     unpackage_window.drop_target_register(DND_FILES)
     unpackage_window.dnd_bind('<<Drop>>', drag_and_drop)
+
+    unpackage_unpack_button['state'] = tk.DISABLED
 
     unpackage_window.mainloop()
     unpackage_window.destroy()
@@ -589,7 +580,7 @@ def filter_button():
     filter_browse_button = ttk.Button(
         filter_window,
         text='Browse',
-        command=f_browse_button
+        command=lambda: browse_(filter_entry_box, False, filter_window)
     )
 
     filter_filter_button = ttk.Button(
@@ -647,7 +638,7 @@ def repair_button():
     repair_browse_button = ttk.Button(
         repair_window,
         text='Browse',
-        command=r_browse_button
+        command=lambda: browse_(repair_entry_box, False, repair_window)
     )
 
     repair_filter_button = ttk.Button(
@@ -711,7 +702,7 @@ def package_button():
     package_browse_button = ttk.Button(
         package_window,
         text='Browse',
-        command=p_browse_button
+        command=lambda: browse_(package_entry_box, False, package_window)
     )
 
     package_button = ttk.Button(
@@ -858,7 +849,7 @@ menubar.add_cascade(label="Help", menu=help_menu)
 browse_button = ttk.Button(
     root,
     text='Browse',
-    command=browse_button
+    command=lambda: browse_(path_cb, True, root)
 )
 
 # create open button
